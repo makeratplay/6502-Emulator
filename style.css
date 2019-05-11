@@ -1,0 +1,143 @@
+body {
+    font-family:monospace;
+    font-size:18px
+}
+
+.hex{
+    font-family: monospace;
+    white-space: pre;
+    font-size: 18px;
+    color: grey;
+}
+
+.table td {
+    padding: .0rem; 
+}
+
+.resisters{
+    position: relative;
+    width: 300px;
+    height: 300px;
+}
+
+.register{
+    position: absolute;
+    width: 100px;
+}
+
+.ProgramCounter{
+    top: 0px;
+    left: 50px;
+}
+
+.StackPointer{
+    top: 0px;
+    left: 150px;
+}
+
+.Accumulator{
+    top: 90px;
+    left: 0px;
+}
+
+.IndexRegisterX{
+    top: 90px;
+    left: 100px;
+}
+
+.IndexRegisterY{
+    top: 90px;
+    left: 200px;
+}
+
+.Flags{
+    top: 180px;
+    left: 50px;
+    width: 200px;
+}
+
+
+.NflagLabels{
+    position: absolute;
+    top: 31px;
+    left: 47px;
+    font-size: .8em;
+    font-weight: bold;
+    color: rgb(44, 43, 43);
+}
+.OflagLabels{
+    position: absolute;
+    top: 31px;
+    left: 62px;
+    font-size: .8em;
+    font-weight: bold;
+    color: rgb(44, 43, 43);
+}
+.DflagLabels{
+    position: absolute;
+    top: 31px;
+    left: 104px;
+    font-size: .8em;
+    font-weight: bold;
+    color: rgb(44, 43, 43);
+}
+.IflagLabels{
+    position: absolute;
+    top: 31px;
+    left: 117px;
+    font-size: .8em;
+    font-weight: bold;
+    color: rgb(44, 43, 43);
+}
+.ZflagLabels{
+    position: absolute;
+    top: 31px;
+    left: 131px;
+    font-size: .8em;
+    font-weight: bold;
+    color: rgb(44, 43, 43);
+}
+.CflagLabels{
+    position: absolute;
+    top: 31px;
+    left: 144px;
+    font-size: .8em;
+    font-weight: bold;
+    color: rgb(44, 43, 43);
+}
+
+.register .value{
+    
+    font-size: 1.4em;
+    padding: .2em;
+    border: 1px solid black;
+    display: block;
+    text-align: center;
+    background-color: rgb(226, 226, 226);
+    color: black;
+    width: 100%;
+}
+
+.register label{
+    position: absolute;
+    top: 49px;
+    left: 0px;
+    width: 100%;
+    color: white;
+    font-size: 1em;
+    text-align: center;
+    background-color: black;
+}
+
+.register .changed{
+    color: blue;
+}
+
+.stackWatch{
+    height: 900px;
+    overflow-y: auto;
+}
+
+.highlight {
+    border-top: 2px solid black; 
+}
