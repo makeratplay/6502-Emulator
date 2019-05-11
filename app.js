@@ -31,6 +31,8 @@ app.controller('AppController', function( $filter, FileService ) {
     
     vm.AssemblyCode = [];
     vm.Memory = [];
+    vm.MemoryRow = [];
+
     vm.Program = [0xa2, 0xff, 0x78, 0x9a, 0xd8, 0x20, 0x3f, 0xfd, 0xd0, 0x03, 0x6c, 0x00, 0xa0, 0x20, 0x8d, 0xfd, 0x20, 0x52, 0xfd, 0x20, 0xf9, 0xfd, 0x20, 0x18, 
                   0xe5, 0x58, 0x6c, 0x00, 0xc0, 0xa2, 0x05, 0xbd, 0x4c, 0xfd, 0xdd, 0x03, 0xa0, 0xd0, 0x03, 0xca, 0xd0, 0xf5, 0x60, 0x41, 0x30, 0xc3, 0xc2, 0xcd];
 
@@ -216,15 +218,18 @@ app.controller('AppController', function( $filter, FileService ) {
       }
       */
 
+     for(var i = 0; i <= 0xF; i++){
+      vm.MemoryRow.push(i);
+    }
       
 
       for(var i = 0; i < 0xFFFF; i++){
         vm.Memory[i] = 0x10000;
       }
 
-      for( var i = 0x01ff; i >= 0x0100; i-- ){
-        vm.StackMemory.push(i);
-      }
+   //   for( var i = 0x01ff; i >= 0x0100; i-- ){
+   //     vm.StackMemory.push(i);
+   //   }
 
       FileService.getFile('./Kernel.rom')
         .then(function (byteArray){
@@ -362,7 +367,7 @@ app.controller('AppController', function( $filter, FileService ) {
         startAddress = endAddress;
         endAddress = tmp;
       }
-      for( var i = startAddress; i <= endAddress; i++){
+      for( var i = startAddress; i <= endAddress; i+= 16){
         vm.WatchMemory.push(i);
       }
     }
@@ -443,6 +448,17 @@ app.controller('AppController', function( $filter, FileService ) {
           case 'LDA':
           {
             setAccumulator( instruction, readMem(vm.Registers.ProgramCounter, instruction.Mode) );
+            break;
+          }
+          case 'LDY':
+          {
+            setIndexRegisterY( instruction, readMem(vm.Registers.ProgramCounter, instruction.Mode) );
+            break;
+          }
+          case 'STA':
+          {
+            var address = resolveAddress(vm.Registers.ProgramCounter, instruction.Mode);
+            writeMem( address, vm.Registers.Accumulator );
             break;
           }
           case 'JSR':
@@ -527,6 +543,7 @@ app.controller('AppController', function( $filter, FileService ) {
       var address = addByteWithWrapAround(vm.Registers.StackPointer, 0x0100);
       vm.Memory[address] = byte;
       setStackPointer( opCode, --vm.Registers.StackPointer);
+      vm.MemoryChange.push(address);
     }
 
     function popStack( opCode ){
@@ -561,11 +578,32 @@ app.controller('AppController', function( $filter, FileService ) {
       var retVal = 0;
       if (  address >= 0 && address < 0xFFFF ){
         switch(mode){
+          case 'Accumulator':
+          case 'Absolute':
+          {
+            retVal = resolveAddress(address, mode);
+            break;
+          }
+          default:
+          {
+            address = resolveAddress(address, mode);
+            retVal = vm.Memory[address];
+            break;
+          }               
+        }
+      }
+      return retVal;
+    }
+
+    function resolveAddress(address, mode){
+      var retVal = 0;
+      if (  address >= 0 && address < 0xFFFF ){
+        switch(mode){
           case 'Immediate':
           case 'Relative':
           case 'Zero Page':
           {
-            retVal = vm.Memory[address];
+            retVal = address;
             break;
           }               
           case 'Absolute':
@@ -582,14 +620,12 @@ app.controller('AppController', function( $filter, FileService ) {
 
           case 'Absolute,X':
           {
-            var pointer = make16bitNumber( vm.Memory[address+1], (vm.Memory[address] + vm.Registers.IndexRegisterX) );
-            retVal = vm.Memory[pointer];
+            retVal = make16bitNumber( vm.Memory[address+1], (vm.Memory[address] + vm.Registers.IndexRegisterX) );
             break;
           }            
           case 'Absolute,Y':
           {
-            var pointer = make16bitNumber( vm.Memory[address+1], (vm.Memory[address] + vm.Registers.IndexRegisterY) );
-            retVal = vm.Memory[pointer];
+            retVal = make16bitNumber( vm.Memory[address+1], (vm.Memory[address] + vm.Registers.IndexRegisterY) );
             break;
           }            
           case 'Accumulator':
@@ -599,50 +635,45 @@ app.controller('AppController', function( $filter, FileService ) {
           }             
           case 'Zero Page,X':
           {
-            var pointer = make16bitNumber( 0, (vm.Memory[address] + vm.Registers.IndexRegisterX) );
-            retVal = vm.Memory[pointer];
+            retVal = make16bitNumber( 0, (vm.Memory[address] + vm.Registers.IndexRegisterX) );
             break;
           }               
           case 'Zero Page,Y':
           {
-            var pointer = make16bitNumber( 0, (vm.Memory[address] + vm.Registers.IndexRegisterY) );
-            retVal = vm.Memory[pointer];
+            retVal = make16bitNumber( 0, (vm.Memory[address] + vm.Registers.IndexRegisterY) );
             break;
           }             
           
           case 'Indirect,X':
           {
             var pointer = vm.Memory[address]
-            pointer = make16bitNumber( 0, (vm.Memory[pointer] + vm.Registers.IndexRegisterX) );
-            retVal = vm.Memory[pointer];
+            retVal = make16bitNumber( 0, (vm.Memory[pointer] + vm.Registers.IndexRegisterX) );
             break;
           }            
           case 'Indirect,Y':
           {
             var pointer = vm.Memory[address]
-            pointer = make16bitNumber( 0, (vm.Memory[pointer] + vm.Registers.IndexRegisterY) );
-            retVal = vm.Memory[pointer];
+            retVal = make16bitNumber( 0, (vm.Memory[pointer] + vm.Registers.IndexRegisterY) );
             break;
           }            
-            
-          
-             
         }
-
-
       }
-     
       return retVal;
+    }    
+
+    function writeMem( address, byte ){
+      vm.Memory[address] = byte;
+      vm.MemoryChange.push(address);
     }
 
-    function setFlags( opCode , number){
+    function setFlags( opCode, byte ){
       setZeroFlag( opCode, 0 );
       setNegativeFlag( opCode, 0 );
 
-      if ( number == 0 ){
+      if ( byte == 0 ){
         setZeroFlag( opCode, 1 );
       }
-      if (number & 0x80){
+      if (byte & 0x80){
         setNegativeFlag( opCode, 1 );
       }
 
@@ -650,18 +681,23 @@ app.controller('AppController', function( $filter, FileService ) {
       //vm.Registers.OverflowFlag = 0;
     }
 
-    function setAccumulator( opCode, value){
+    function setAccumulator( opCode, value ){
       vm.Registers.Accumulator = value;
       vm.Registers.AccumulatorChanged = true;
       setFlags( opCode, vm.Registers.Accumulator );
     }
 
-    function setStackPointer( opCode, value){
+    function setStackPointer( opCode, value ){
       vm.Registers.StackPointer = value;
       vm.Registers.StackPointerChanged = true;
+
+      vm.StackMemory = [];
+      for( var i = 0x01ff; i > vm.Registers.StackPointer + 0x100; i-- ){
+        vm.StackMemory.push(i);
+      }      
     }
 
-    function setIndexRegisterX( opCode, value){
+    function setIndexRegisterX( opCode, value ){
       if ( value < 0){
         value = 0xFF;
       }
@@ -670,10 +706,10 @@ app.controller('AppController', function( $filter, FileService ) {
       }
       vm.Registers.IndexRegisterX = value;
       vm.Registers.IndexRegisterXChanged = true;
-      setFlags( opCode, vm.Registers.Accumulator );
+      setFlags( opCode, value );
     }
 
-    function setIndexRegisterY( opCode, value){
+    function setIndexRegisterY( opCode, value ){
       if ( value < 0){
         value = 0xFF;
       }
@@ -682,40 +718,41 @@ app.controller('AppController', function( $filter, FileService ) {
       }
       vm.Registers.IndexRegisterY = value;
       vm.Registers.IndexRegisterYChanged = true;
-      setFlags( opCode, vm.Registers.Accumulator );
+      setFlags( opCode, value );
     }    
 
-    function setCarryFlag (opCode, value){
+    function setCarryFlag( opCode, value ){
       vm.Registers.CarryFlag = value;
       vm.Registers.CarryFlagChanged = true;
     } 
 
-    function setZeroFlag (opCode, value){
+    function setZeroFlag( opCode, value ){
       vm.Registers.ZeroFlag = value;
       vm.Registers.ZeroFlagChanged = true;
     } 
     
-    function setOverflowFlag (opCode, value){
+    function setOverflowFlag( opCode, value ){
       vm.Registers.OverflowFlag = value;
       vm.Registers.OverflowFlagChanged = true;
     }     
 
-    function setNegativeFlag (opCode, value){
+    function setNegativeFlag( opCode, value ){
       vm.Registers.NegativeFlag = value;
       vm.Registers.NegativeFlagChanged = true;
     }    
 
-    function setInterruptDisable(opCode, value){
+    function setInterruptDisable( opCode, value ){
       vm.Registers.InterruptDisable = value;
       vm.Registers.InterruptDisableChanged = true;
     }
 
-    function setDecimalMode(opCode, value){
+    function setDecimalMode( opCode, value ){
       vm.Registers.DecimalMode = value;
       vm.Registers.DecimalModeChanged = true;
     }    
 
     function clearChangedFlags(){
+      vm.MemoryChange = [];
       vm.Registers.ProgramCounterChanged = false;
       vm.Registers.StackPointerChanged = false;
       vm.Registers.AccumulatorChanged = false;

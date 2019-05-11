@@ -134,10 +134,27 @@ body {
 }
 
 .stackWatch{
-    height: 900px;
+    max-height: 200px;
     overflow-y: auto;
 }
 
+.codeWatch{
+    max-height: 900px;
+    overflow-y: auto;
+}
+
+.memoryWatch{
+    /*max-height: 900px;*/
+    /*overflow-y: auto;*/
+}
+
 .highlight {
-    border-top: 2px solid black; 
+    font-weight: bold;
+    color: rgb(253, 0, 0) !important;
+}
+
+.memoryRow{
+    white-space: nowrap;
+    font-size: 15px;
+    line-height: 1em;
 }
