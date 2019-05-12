@@ -18,11 +18,18 @@
         <div class="container-fluid">
             <div class="row">
                 <div class="col-sm-2">
-                    <h2>Code  <button class="btn btn-info btn-sm" ng-click="vm.step();">step (F10)</button></h2>
+                    <h2>Code</h2>
+                    <div class="row" style="margin-bottom: 10px;">
+                        <div class="col-sm-4"><input class="form-control form-control-sm" ng-model="vm.runToAddress"/></div>
+                        <div class="col-sm-6"><button class="btn btn-info btn-sm" ng-click="vm.step();">step (F10)</button></div>
+                        <div class="col-sm-1">{{vm.totalSteps}}</div>
+                    </div> 
+                        
+                    
                     <div class="codeWatch">
                         <table class="table table-striped">
                             <tr ng-repeat="item in vm.AssemblyCode  track by $index">
-                                <td ><span style="color: black; font-weight:600;" data-toggle="tooltip" data-placement="top" title="{{item.Address}}">{{item.Address | hex:16}}:</span></td>
+                                <td ><span style="color: black; font-weight:600;" ng-click="vm.setRunTo(item.Address);" data-toggle="tooltip" data-placement="top" title="{{item.Address}}">{{item.Address | hex:16}}:</span></td>
                                 <td style="width: 20px;"><span style="color: rgb(10, 173, 4); font-weight:600;"><i ng-if="item.Address == vm.Registers.ProgramCounter" class="fas fa-arrow-right"></i></span></td>
                                 <td ><span style="color: blue;" data-toggle="tooltip" data-placement="top" title="({{item.OpCode.OpCode | hex}}) {{item.OpCode.Descripton}}"> {{item.OpCode.Name}}</span> {{item.Params}}</td>
                             </tr>
@@ -84,25 +91,31 @@
                         </table>                
                     </div>  
                                         
-                    <h2>Memory Watch</h2>
+                    <h2>Memory Write</h2>
                     <div class="stackWatch">
                         <table class="table table-striped">
-                            <tr ng-repeat="item in vm.MemoryChange  track by $index " ng-class="{ highlight : vm.Registers.StackPointer == (item - 256) }">
+                            <tr ng-repeat="item in vm.MemoryChange  track by $index ">
                                 <td><span style="color: black; font-weight:600;" data-toggle="tooltip" data-placement="top" title="{{item}}">{{item | hex:16}}:</span>
                                 </td>
                                 <td ><span style="color: blue;">{{vm.Memory[item] | hex}}</span></td>
                             </tr>
                         </table>                
-                    </div>                       
+                    </div>          
+                    
+                    <h2>Memory Read</h2>
+                    <div class="stackWatch">
+                        <table class="table table-striped">
+                            <tr ng-repeat="item in vm.MemoryRead  track by $index ">
+                                <td><span style="color: black; font-weight:600;" data-toggle="tooltip" data-placement="top" title="{{item}}">{{item | hex:16}}:</span>
+                                </td>
+                                <td ><span style="color: blue;">{{vm.Memory[item] | hex}}</span></td>
+                            </tr>
+                        </table>                
+                    </div>                      
                 </center>
 
                
                 </div>
-
-                <div class="col-sm-2">
-  
-                </div>
-
                 <div class="col-sm-3">
 
                     <h2>Memory</h2>
@@ -120,7 +133,17 @@
 
              
                     </div>   
-                </div>                
+                </div>            
+                <div class="col-sm-3">
+                    <h2>Memory Map</h2>
+                    <div class="row" style="margin-bottom: 10px;">
+                        <div class="memoryMap">
+                            <div class="memorySection" ng-repeat="item in vm.memoryMap" ng-class="{ write : vm.checkRange( item.Start, item.End, vm.MemoryChange ), read : vm.checkRange( item.Start, item.End, vm.MemoryRead ) }">
+                                {{item.Start | hex:16 }} - {{item.End | hex:16 }} {{item.Name}}
+                            </div>
+                        </div>
+                    </div>
+                </div>    
             </div>
         </div>
 
