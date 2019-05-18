@@ -16,6 +16,13 @@
 </head>
 <body ng-controller="AppController as vm" step="vm.step();">
         <div class="container-fluid">
+            <div ng-show="vm.ErrroMsg" class="row">
+                <div class="col">
+                    <div class="alert alert-danger" role="alert">
+                        {{vm.ErrorMsg}}
+                    </div>
+                </div>
+            </div>
             <div class="row">
                 <div class="col-sm-5">
                     <h2>Code</h2>
