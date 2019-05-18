@@ -1,0 +1,79 @@
+[
+
+{ "Address" : "0xfd22", "Label" : "Reset_Handler", "Comment" : "; set X for stack" },
+{ "Address" : "0xfd24", "Label" : "", "Comment" : "; disable interrupts" },
+{ "Address" : "0xfd25", "Label" : "", "Comment" : "; clear stack" },
+{ "Address" : "0xfd26", "Label" : "", "Comment" : "; clear decimal mode" },
+{ "Address" : "0xfd27", "Label" : "", "Comment" : "; scan for autostart ROM at $A000" },
+{ "Address" : "0xfd2a", "Label" : "", "Comment" : "; if not there continue Vic startup" },
+{ "Address" : "0xfd2c", "Label" : "", "Comment" : "; call ROM start code" },
+
+{ "Address" : "0xfd2f", "Label" : "", "Comment" : "; initialise and test RAM" },
+{ "Address" : "0xfd32", "Label" : "", "Comment" : "; restore default I/O vectors" },
+{ "Address" : "0xfd35", "Label" : "", "Comment" : "; initialize I/O registers" },
+{ "Address" : "0xfd38", "Label" : "", "Comment" : "; initialise hardware" },
+{ "Address" : "0xfd3b", "Label" : "", "Comment" : "; enable interrupts" },
+{ "Address" : "0xfd3c", "Label" : "", "Comment" : "; execute BASIC" },
+
+
+
+{ "Address" : "0xfd8D", "Label" : "", "Comment" : "; clear A" },
+{ "Address" : "0xfd8f", "Label" : "", "Comment" : "; clear index" },
+{ "Address" : "0xfd90", "Label" : "", "Comment" : "; clear page 0" },
+{ "Address" : "0xfd92", "Label" : "", "Comment" : "; clear page 2" },
+{ "Address" : "0xfd95", "Label" : "", "Comment" : "; clear page 3" },
+{ "Address" : "0xfd98", "Label" : "", "Comment" : "; increment index" },
+{ "Address" : "0xfd99", "Label" : "", "Comment" : "; loop if more to do" },
+
+{ "Address" : "0xfd9b", "Label" : "", "Comment" : "; set cassette buffer pointer low byte" },
+{ "Address" : "0xfd9d", "Label" : "", "Comment" : "; set cassette buffer pointer high byte" },
+{ "Address" : "0xfd9f", "Label" : "", "Comment" : "; save tape buffer start pointer low byte" },
+{ "Address" : "0xfda1", "Label" : "", "Comment" : "; save tape buffer start pointer high byte" },
+
+{ "Address" : "0xfda3", "Label" : "", "Comment" : "; clear RAM test pointer low byte" },
+{ "Address" : "0xfda5", "Label" : "", "Comment" : "; clear looking for end flag" },
+{ "Address" : "0xfda7", "Label" : "", "Comment" : "; clear OS start of memory low byte" },
+
+{ "Address" : "0xfdaa", "Label" : "", "Comment" : "; clear Y" },
+{ "Address" : "0xfdab", "Label" : "", "Comment" : "; set RAM test pointer high byte" },
+{ "Address" : "0xfdad", "Label" : "", "Comment" : "; save RAM test pointer high byte" },
+{ "Address" : "0xfdaf", "Label" : "", "Comment" : "; increment RAM test pointer low byte" },
+{ "Address" : "0xfdb1", "Label" : "", "Comment" : "; if no rollover skip the high byte increment" },
+
+{ "Address" : "0xfdb3", "Label" : "", "Comment" : "; increment RAM test pointer high byte" },
+{ "Address" : "0xfdb5", "Label" : "", "Comment" : "; test RAM byte, return Cb=0 if failed" },
+{ "Address" : "0xfdb8", "Label" : "", "Comment" : "; test looking for end flag" },
+{ "Address" : "0xfdba", "Label" : "", "Comment" : "; branch if not looking for end else now looking for the end of memory" },
+
+{ "Address" : "0xfdbc", "Label" : "", "Comment" : "; loop if byte test passed" },
+
+{ "Address" : "0xfdbe", "Label" : "", "Comment" : "; get test address high byte" },
+{ "Address" : "0xfdc0", "Label" : "", "Comment" : "; get test address low byte" },
+{ "Address" : "0xfdc2", "Label" : "", "Comment" : "; compare with $2000, RAM should always end at or after" },
+{ "Address" : "0xfdc4", "Label" : "", "Comment" : "; $2000 even with no expansion memory as the built in RAM ends at $1FFF. therefore the following test should never branch" },
+{ "Address" : "0xfdc6", "Label" : "", "Comment" : "; if end address < $2000 go do dead end loop" },
+
+{ "Address" : "0xfdc8", "Label" : "", "Comment" : "; compare with $2100" },
+{ "Address" : "0xfdca", "Label" : "", "Comment" : "; branch if >= $2100 else memory ended before $2100" },
+
+{ "Address" : "0xfdcc", "Label" : "", "Comment" : "; set screen memory page to $1E00" },
+{ "Address" : "0xfdcf", "Label" : "", "Comment" : "; save screen memory page" },
+{ "Address" : "0xfdd2", "Label" : "", "Comment" : "; set the top of memory and return memory ends beyond $2100" },
+{ "Address" : "0xfdd2", "Label" : "", "Comment" : "; set OS start of memory high byte" },
+{ "Address" : "0xfdd4", "Label" : "", "Comment" : "; save OS start of memory high byte" },
+{ "Address" : "0xfdd7", "Label" : "", "Comment" : "; set screen memory page to $1000" },
+
+{ "Address" : "0xfdd9", "Label" : "", "Comment" : "; save screen memory page" },
+{ "Address" : "0xfddc", "Label" : "", "Comment" : "; set the top of memory and return, branch always" },
+{ "Address" : "0xfdde", "Label" : "", "Comment" : "; loop if byte test failed, not found start yet else found start of RAM" },
+
+{ "Address" : "0xfde0", "Label" : "", "Comment" : "; get test address high byte" },
+{ "Address" : "0xfde2", "Label" : "", "Comment" : "; save OS start of memory high byte" },
+{ "Address" : "0xfde5", "Label" : "", "Comment" : "; set looking for end flag" },
+{ "Address" : "0xfde7", "Label" : "", "Comment" : "; compare start with $1100, RAM should always start before $1100 even with no expansion memory as the built in RAM starts at $1000. therefore the following test should always branch" },
+{ "Address" : "0xfde9", "Label" : "", "Comment" : "; go find end of RAM, branch always if the code drops through here then the RAM has failed and there is not much else to be done" },
+{ "Address" : "0xfdeb", "Label" : "", "Comment" : "; initialise Vic chip" },
+{ "Address" : "0xfdee", "Label" : "", "Comment" : "; loop forever" }
+
+    
+  ]

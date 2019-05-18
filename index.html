@@ -17,21 +17,30 @@
 <body ng-controller="AppController as vm" step="vm.step();">
         <div class="container-fluid">
             <div class="row">
-                <div class="col-sm-2">
+                <div class="col-sm-5">
                     <h2>Code</h2>
                     <div class="row" style="margin-bottom: 10px;">
-                        <div class="col-sm-4"><input class="form-control form-control-sm" ng-model="vm.runToAddress"/></div>
+                        <div class="col-sm-2"><input class="form-control form-control-sm" ng-model="vm.runToAddress"/></div>
                         <div class="col-sm-6"><button class="btn btn-info btn-sm" ng-click="vm.step();">step (F10)</button></div>
+                        <div class="col-sm-2"><input class="form-control form-control-sm" ng-model="vm.stepCount"/></div>
                         <div class="col-sm-1">{{vm.totalSteps}}</div>
                     </div> 
                         
                     
                     <div class="codeWatch">
-                        <table class="table table-striped">
+                        <table class="table table-striped code">
                             <tr ng-repeat="item in vm.AssemblyCode  track by $index">
-                                <td ><span style="color: black; font-weight:600;" ng-click="vm.setRunTo(item.Address);" data-toggle="tooltip" data-placement="top" title="{{item.Address}}">{{item.Address | hex:16}}:</span></td>
-                                <td style="width: 20px;"><span style="color: rgb(10, 173, 4); font-weight:600;"><i ng-if="item.Address == vm.Registers.ProgramCounter" class="fas fa-arrow-right"></i></span></td>
-                                <td ><span style="color: blue;" data-toggle="tooltip" data-placement="top" title="({{item.OpCode.OpCode | hex}}) {{item.OpCode.Descripton}}"> {{item.OpCode.Name}}</span> {{item.Params}}</td>
+                                <td class="address" ><span  ng-click="vm.runToAddress = vm.setRunTo(item.Address);" data-toggle="tooltip" data-placement="top" title="{{item.Address}}">{{item.Address | hex:16}}:</span></td>
+                                <td class="bytes">
+                                    <span ng-if="item.Label" style="color: green;">{{item.Label}} <br/></span>
+                                    <span >{{item.bytes}}</span>
+                                </td>
+                                <td class="arrow"><i ng-if="item.Address == vm.Registers.ProgramCounter" class="fas fa-arrow-right"></i></td>
+                                <td class="assemble" data-toggle="tooltip" data-placement="top" title="({{item.OpCode.OpCode | hex}}) {{item.OpCode.Descripton}}">
+                                    <span > {{item.OpCode.Name}}</span> 
+                                    <span class="param">{{item.Params}}</span>
+                                </td>
+                                <td class="comments">{{item.Comment}}</td>
                             </tr>
                         </table>
                     </div>
@@ -134,12 +143,15 @@
              
                     </div>   
                 </div>            
-                <div class="col-sm-3">
+                <div class="col-sm-1">
                     <h2>Memory Map</h2>
                     <div class="row" style="margin-bottom: 10px;">
                         <div class="memoryMap">
-                            <div class="memorySection" ng-repeat="item in vm.memoryMap" ng-class="{ write : vm.checkRange( item.Start, item.End, vm.MemoryChange ), read : vm.checkRange( item.Start, item.End, vm.MemoryRead ) }">
-                                {{item.Start | hex:16 }} - {{item.End | hex:16 }} {{item.Name}}
+                            <div class="memorySection" ng-repeat="item in vm.memoryMap" ng-click="vm.memoryWatchStart = vm.setRunTo(item.Start); vm.memoryWatchEnd = vm.setRunTo(item.End);"
+                                ng-class="{ write : vm.checkRange( item.Start, item.End, vm.MemoryChange ), read : vm.checkRange( item.Start, item.End, vm.MemoryRead ) }">
+                                <div class="startAddress">{{item.Start | hex:16 }}</div>
+                                <div class="endAddress">{{item.End | hex:16 }}</div>
+                                <div class="memoryMaplabel">{{item.Name}}</div>
                             </div>
                         </div>
                     </div>

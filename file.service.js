@@ -1,6 +1,6 @@
 function FileService($http) {
     return {
-      getFile: function (url) {
+      getBinaryFile: function (url) {
           return $http(
             {
                 url: url,
@@ -16,6 +16,10 @@ function FileService($http) {
             var byteArray = new Uint8Array(arrayBuffer);
               return byteArray;
           });
+      },
+
+      getFile: function (url) {
+        return $http.get(url).then( function (response) { return response.data; });
       }
     };
   }

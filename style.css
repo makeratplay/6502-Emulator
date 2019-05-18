@@ -161,16 +161,76 @@ body {
 }
 
 .memorySection{
-    padding: 5px;
+    position: relative;
+    padding-left: 3px;
+    padding-right: 3px;
     border: 1px solid black;
     background-color: rgb(184, 250, 225);
+    font-size: .75vw;
+}
+
+.startAddress{
+    width: 200px;
+    font-weight: bold;
+}
+
+.endAddress{
+    font-size: .75vw;
+}
+
+.memoryMaplabel{
+    position: absolute;
+    top: 0px;
+    left: 50px;
+    font-size: .65vw;
 }
 
 .write{
-    background-color: red;
+    background-color: blue;
     color: white;
 }
 
 .read{
-    border: 2px solid blue;
+    color: red;
+    border: 1px solid red;
 }
+
+.table td{
+    vertical-align: bottom;
+}
+
+.code{
+
+}
+
+.code .address{
+    width: 60px;
+    color: black; 
+    font-weight:600;
+}
+
+.code .bytes{
+    width: 120px;
+    color: rgb(44, 61, 44);
+}
+
+.code .arrow{
+    width: 20px;
+    color: rgb(10, 173, 4); 
+    font-weight:600;
+}
+
+.code .assemble{
+    width: 150px;
+    color: blue;
+}
+
+.code .param{
+    color: black;
+}
+
+.code .comments{
+    width: 800px;
+    color: green;
+}
+
