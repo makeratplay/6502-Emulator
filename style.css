@@ -1,6 +1,6 @@
 body {
     font-family:monospace;
-    font-size:18px
+    font-size:12px
 }
 
 .hex{
@@ -10,6 +10,20 @@ body {
     color: grey;
 }
 
+.table opCode{
+    border-collapse: collapse;
+    /*border: 1px solid black;*/
+}
+
+th {
+}
+
+th.a{
+    
+    transform: rotate(-80deg);    
+}
+
+
 .table td {
     padding: .0rem; 
 }
@@ -17,12 +31,13 @@ body {
 .resisters{
     position: relative;
     width: 300px;
-    height: 300px;
+    height: 200px;
 }
 
 .register{
     position: absolute;
     width: 100px;
+    cursor: pointer;
 }
 
 .ProgramCounter{
@@ -36,74 +51,51 @@ body {
 }
 
 .Accumulator{
-    top: 90px;
+    top: 60px;
     left: 0px;
 }
 
 .IndexRegisterX{
-    top: 90px;
+    top: 60px;
     left: 100px;
 }
 
 .IndexRegisterY{
-    top: 90px;
+    top: 60px;
     left: 200px;
 }
 
 .Flags{
-    top: 180px;
+    top: 120px;
     left: 50px;
     width: 200px;
 }
 
+.flagLabels{
+    position: absolute;
+    top: 21px;
+    font-size: .8em;
+    font-weight: bold;
+    color: rgb(44, 43, 43);
+}
 
 .NflagLabels{
-    position: absolute;
-    top: 31px;
-    left: 47px;
-    font-size: .8em;
-    font-weight: bold;
-    color: rgb(44, 43, 43);
+    left: 65px;
 }
 .OflagLabels{
-    position: absolute;
-    top: 31px;
-    left: 62px;
-    font-size: .8em;
-    font-weight: bold;
-    color: rgb(44, 43, 43);
+    left: 75px;
 }
 .DflagLabels{
-    position: absolute;
-    top: 31px;
-    left: 104px;
-    font-size: .8em;
-    font-weight: bold;
-    color: rgb(44, 43, 43);
+    left: 101px;
 }
 .IflagLabels{
-    position: absolute;
-    top: 31px;
-    left: 117px;
-    font-size: .8em;
-    font-weight: bold;
-    color: rgb(44, 43, 43);
+    left: 111px;
 }
 .ZflagLabels{
-    position: absolute;
-    top: 31px;
-    left: 131px;
-    font-size: .8em;
-    font-weight: bold;
-    color: rgb(44, 43, 43);
+    left: 121px;
 }
 .CflagLabels{
-    position: absolute;
-    top: 31px;
-    left: 144px;
-    font-size: .8em;
-    font-weight: bold;
-    color: rgb(44, 43, 43);
+    left: 131px;
 }
 
 .register .value{
@@ -120,7 +112,7 @@ body {
 
 .register label{
     position: absolute;
-    top: 49px;
+    /*top: 49px;*/
     left: 0px;
     width: 100%;
     color: white;
@@ -178,6 +170,51 @@ body {
     font-size: .75vw;
 }
 
+
+
+.memoryMap{
+    border: 1px solid black;
+    border-collapse: collapse;
+    width: 95%;
+    margin-top: 5px;
+    margin-left: 5px;
+}
+
+.memoryMap th{
+    /*font-size: 14px;*/
+    font-weight: Bold;
+    border: 1px solid black;
+    text-align: center;
+}
+
+.memoryMap td{
+    /*font-size: 12px;*/
+    font-weight: normal;
+    border: 1px solid black;
+    text-align: center;
+}
+
+.memoryMap .Interal{
+    background-color: #aecf9e ;
+}
+
+.memoryMap .Exteral{
+    background-color: #a0c7cf ;
+}
+
+.memoryMap .write {
+    background-color: rgb(75, 75, 253);
+    color: white;
+}
+
+.memoryMap .read{
+    background-color: rgb(247, 90, 90);
+    color: white;
+}
+
+
+
+
 .memoryMaplabel{
     position: absolute;
     top: 0px;
@@ -199,8 +236,17 @@ body {
     vertical-align: bottom;
 }
 
+.HexDump{
+    margin-top: 20px;;
+}
+
 .code{
 
+}
+
+.code th{
+    padding: .0rem; 
+    font-size: small;
 }
 
 .code .address{
@@ -234,3 +280,10 @@ body {
     color: green;
 }
 
+.vertical-center {
+    margin: 0;
+    position: absolute;
+    top: 50%;
+    -ms-transform: translateY(-50%);
+    transform: translateY(-50%);
+  }

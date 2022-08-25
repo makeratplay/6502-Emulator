@@ -7,8 +7,15 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.7.8/angular.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.11/lodash.min.js"></script>
-    <script src="./app.js"></script>
-    <script src="./file.service.js"></script>
+    <script src="app.js"></script>
+    <script src="CPU.js"></script>
+    <script src="file.service.js"></script>
+    <script src="debug.js"></script>
+    <script src="memory.js"></script>
+    <script src="filters.js"></script>
+    <script src="OpCodes.js"></script>
+    <script src="disassemble.js"></script>
+    <script src="screen.js"></script>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.2/css/all.css" integrity="sha384-oS3vJWv+0UjzBfQzYUhtDYW+Pj2yciDJxpsK1OYPAYjqT085Qq/1cq5FLXAZQ7Ay" crossorigin="anonymous">
     <link rel="stylesheet" href="style.css">
@@ -16,81 +23,127 @@
 </head>
 <body ng-controller="AppController as vm" step="vm.step();">
         <div class="container-fluid">
-            <div ng-show="vm.ErrroMsg" class="row">
+
+            <div ng-show="vm.Debug.errorMsg" class="row">
                 <div class="col">
                     <div class="alert alert-danger" role="alert">
-                        {{vm.ErrorMsg}}
+                        {{vm.Debug.errorMsg}}
                     </div>
                 </div>
             </div>
+            <!-- 
             <div class="row">
-                <div class="col-sm-5">
-                    <h2>Code</h2>
-                    <div class="row" style="margin-bottom: 10px;">
-                        <div class="col-sm-2"><input class="form-control form-control-sm" ng-model="vm.runToAddress"/></div>
-                        <div class="col-sm-6"><button class="btn btn-info btn-sm" ng-click="vm.step();">step (F10)</button></div>
-                        <div class="col-sm-2"><input class="form-control form-control-sm" ng-model="vm.stepCount"/></div>
-                        <div class="col-sm-1">{{vm.totalSteps}}</div>
-                    </div> 
-                        
-                    
-                    <div class="codeWatch">
-                        <table class="table table-striped code">
-                            <tr ng-repeat="item in vm.AssemblyCode  track by $index">
-                                <td class="address" ><span  ng-click="vm.runToAddress = vm.setRunTo(item.Address);" data-toggle="tooltip" data-placement="top" title="{{item.Address}}">{{item.Address | hex:16}}:</span></td>
-                                <td class="bytes">
-                                    <span ng-if="item.Label" style="color: green;">{{item.Label}} <br/></span>
-                                    <span >{{item.bytes}}</span>
-                                </td>
-                                <td class="arrow"><i ng-if="item.Address == vm.Registers.ProgramCounter" class="fas fa-arrow-right"></i></td>
-                                <td class="assemble" data-toggle="tooltip" data-placement="top" title="({{item.OpCode.OpCode | hex}}) {{item.OpCode.Descripton}}">
-                                    <span > {{item.OpCode.Name}}</span> 
-                                    <span class="param">{{item.Params}}</span>
-                                </td>
-                                <td class="comments">{{item.Comment}}</td>
-                            </tr>
-                        </table>
+                <col-sm-12>
+                <ul class="nav nav-pills">
+                    <li class="nav-item"><a class="nav-link" ng-class="{ active : vm.tab == 1 }"  href="#" ng-click="vm.tab = 1">Binary</a></li>
+                    <li class="nav-item"><a class="nav-link" ng-class="{ active : vm.tab == 2 }"  href="#" ng-click="vm.tab = 2">Debug</a></li>
+                </ul>                
+                </col-sm-12>
+            </div>
+            -->            
+            <div class="row" ng-show="vm.tab == 1">
+                <div class="col-sm-12">
+                    <div class="HexDump">
+                        <button type="button" class="btn btn-primary btn-sm" ng-click="vm.SaveState()">Save State</button>
+                        <button type="button" class="btn btn-primary btn-sm" ng-click="vm.LoadState()">Load State</button>
                     </div>
+                    <div >
+                        <div class="HexDump">
+                            <label for="">Hex Dump</label> &nbsp; <button type="button" class="btn btn-primary btn-sm" ng-click="vm.loadHexDump()">Load</button>
+                            <textarea class="form-control" ng-model="vm.source" cols="30" rows="10"></textarea>
+                        </div>  
+                    </div>                    
+                </div>
+            </div>
+
+
+
+            <div class="row" ng-show="vm.tab == 2">
+                <div class="col-sm-4">
+                    <div>
+                        <h2>Code</h2>
+                        <div class="row" style="margin-bottom: 10px;">
+                            <div class="col-sm-2">
+                                <input class="form-control form-control-sm" ng-model="vm.runToAddress" title="Enter an address to break on, then press step button."/>
+                            </div>
+                            <div class="col-sm-6">
+                                <button class="btn btn-info btn-sm" ng-click="vm.step();">step (F10)</button>
+                                <button class="btn btn-info btn-sm" ng-click="vm.run();">run</button>
+                                <button class="btn btn-info btn-sm" ng-click="vm.pause();">pause</button>
+                            </div>
+                            <div class="col">
+                                <input class="form-control form-control-sm" style="width: 25%; display: inline;" ng-model="vm.stepCount" title="Enter number of steps to run when step is pressed."/>
+                                <span class="xvertical-center" title="total number of steps executed">{{vm.totalSteps}} steps</span>
+                            </div>
+                        </div> 
+                            
+                        
+                        <div class="codeWatch">
+                            <table class="table table-striped code">
+                                <tr>
+                                    <th>Address</th>
+                                    <th>Hexdump</th>
+                                    <th></th>
+                                    <th>Dissaaembly</th>
+                                    <th></th>
+                                </tr>                            
+                                <tr ng-repeat="item in vm.Disassemble.AssemblyCode  track by $index">
+                                    <td class="address" ><span  ng-click="vm.runToAddress = vm.setRunTo(item.Address);" data-toggle="tooltip" data-placement="top" title="{{item.Address}}">{{item.Address | hex:16}}:</span></td>
+                                    <td class="bytes">
+                                        <span ng-if="item.Label" style="color: green;">{{item.Label}} <br/></span>
+                                        <span >{{item.HexDump}}</span>
+                                    </td>
+                                    <td class="arrow"><i ng-if="item.Address == vm.CPU.registers.ProgramCounter" class="fas fa-arrow-right"></i></td>
+                                    <td class="assemble" data-toggle="tooltip" data-placement="top" title="({{item.OpCode.OpCode | hex}}) {{item.OpCode.Descripton}}">
+                                        <span > {{item.OpCode.Name}}</span> 
+                                        <span class="param">{{item.Params}}</span>
+                                    </td>
+                                    <td class="comments">{{item.Comment}}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+
+
                 </div>
 
                  <div class="col-sm-2">
-                    <center>
                     <h2>Registers</h2>
                     <div class="resisters" >
                         <div class="register ProgramCounter" >
-                            <span class="value" ng-class="{ changed : vm.Registers.ProgramCounterChanged }">{{vm.Registers.ProgramCounter | hex:16}}</span>
+                            <span class="value" ng-class="{ changed : vm.Debug.registers.ProgramCounter }">{{vm.CPU.registers.ProgramCounter | hex:16}}</span>
                             <label>PC</label>
                         </div>
 
                         <div class="register StackPointer">
-                            <span class="value" ng-class="{ changed : vm.Registers.StackPointerChanged }">{{vm.Registers.StackPointer | hex}}</span>
+                            <span class="value" ng-class="{ changed : vm.Debug.registers.StackPointer }">{{vm.CPU.registers.StackPointer | hex}}</span>
                             <label>SP</label>
                         </div>
 
                         <div class="register Accumulator">
-                            <span class="value" ng-class="{ changed : vm.Registers.AccumulatorChanged }">{{vm.Registers.Accumulator | hex}}</span>
+                            <span class="value" ng-class="{ changed : vm.Debug.registers.Accumulator }">{{vm.CPU.registers.Accumulator | hex}}</span>
                             <label>A</label>
                         </div>
                         
                         <div class="register IndexRegisterX">
-                            <span class="value" ng-class="{ changed : vm.Registers.IndexRegisterXChanged }">{{vm.Registers.IndexRegisterX | hex}}</span>
+                            <span class="value" ng-class="{ changed : vm.Debug.registers.IndexRegisterX }">{{vm.CPU.registers.IndexRegisterX | hex}}</span>
                             <label>X</label>
                         </div>
                         
                         <div class="register IndexRegisterY">
-                            <span class="value" ng-class="{ changed : vm.Registers.IndexRegisterYChanged }">{{vm.Registers.IndexRegisterY | hex}}</span>
+                            <span class="value" ng-class="{ changed : vm.Debug.registers.IndexRegisterY }">{{vm.CPU.registers.IndexRegisterY | hex}}</span>
                             <label>Y</label>
                         </div>              
                         
                         <div class="register Flags">
                             <span class="value">
-                                <span ng-class="{ changed : vm.Registers.NegativeFlagChanged }">{{vm.Registers.NegativeFlag | bit}}</span><span ng-class="{ changed : vm.Registers.OverflowFlagChanged }">{{vm.Registers.OverflowFlag | bit}}</span>xx<span ng-class="{ changed : vm.Registers.DecimalModeChanged }">{{vm.Registers.DecimalMode | bit}}</span><span ng-class="{ changed : vm.Registers.InterruptDisableChanged }">{{vm.Registers.InterruptDisable | bit}}</span><span ng-class="{ changed : vm.Registers.ZeroFlagChanged }">{{vm.Registers.ZeroFlag | bit}}</span><span ng-class="{ changed : vm.Registers.CarryFlagChanged }"></span>{{vm.Registers.CarryFlag | bit}}</span>
-                                <span class="NflagLabels" ng-class="{ changed : vm.Registers.NegativeFlagChanged }">N</span>
-                                <span class="OflagLabels" ng-class="{ changed : vm.Registers.OverflowFlagChanged }">V</span>
-                                <span class="DflagLabels" ng-class="{ changed : vm.Registers.DecimalModeChanged }">D</span>
-                                <span class="IflagLabels" ng-class="{ changed : vm.Registers.InterruptDisableChanged }">I</span>
-                                <span class="ZflagLabels" ng-class="{ changed : vm.Registers.ZeroFlagChanged }">Z</span>
-                                <span class="CflagLabels" ng-class="{ changed : vm.Registers.CarryFlagChanged }">C</span>
+                                <span ng-class="{ changed : vm.Debug.registers.NegativeFlag }">{{vm.CPU.registers.NegativeFlag | bit}}</span><span ng-class="{ changed : vm.CPU.registers.OverflowFlagChanged }">{{vm.CPU.registers.OverflowFlag | bit}}</span>xx<span ng-class="{ changed : vm.Debug.registers.DecimalMode }">{{vm.CPU.registers.DecimalMode | bit}}</span><span ng-class="{ changed : vm.Debug.registers.InterruptDisable }">{{vm.CPU.registers.InterruptDisable | bit}}</span><span ng-class="{ changed : vm.Debug.registers.ZeroFlag }">{{vm.CPU.registers.ZeroFlag | bit}}</span><span ng-class="{ changed : vm.Debug.registers.CarryFlag }"></span>{{vm.CPU.registers.CarryFlag | bit}}</span>
+                                <span class="flagLabels NflagLabels" ng-class="{ changed : vm.Debug.registers.NegativeFlag }" title="Negative Flag">N</span>
+                                <span class="flagLabels OflagLabels" ng-class="{ changed : vm.Debug.registers.OverflowFlag }" title="Overflow Flag">V</span>
+                                <span class="flagLabels DflagLabels" ng-class="{ changed : vm.Debug.registers.DecimalMode }" title="Decimal Mode">D</span>
+                                <span class="flagLabels IflagLabels" ng-class="{ changed : vm.Debug.registers.InterruptDisable }" title="Interrupt Disable">I</span>
+                                <span class="flagLabels ZflagLabels" ng-class="{ changed : vm.Debug.registers.ZeroFlag }" title="Zero Flag">Z</span>
+                                <span class="flagLabels CflagLabels" ng-class="{ changed : vm.Debug.registers.CarryFlag }" title="Carry Flag">C</span>
                             </span>
                             <label>Flags</label>
                         </div>                           
@@ -99,10 +152,10 @@
                     <h2>Stack</h2>
                     <div class="stackWatch">
                         <table class="table table-striped">
-                            <tr ng-repeat="item in vm.StackMemory  track by $index " ng-class="{ highlight : vm.Registers.StackPointer == (item - 256) }">
+                            <tr ng-repeat="item in vm.Debug.memory.stack  track by $index " ng-class="{ highlight : vm.CPU.registers.StackPointer == (item - 256) }">
                                 <td><span style="color: black; font-weight:600;" data-toggle="tooltip" data-placement="top" title="{{item}}">{{item | hex:16}}:</span>
                                 </td>
-                                <td ><span style="color: grey;" ng-class="{ changed : vm.MemoryChange.contains(item - 256) }">{{vm.Memory[item] | hex}}</span></td>
+                                <td ><span style="color: grey;" ng-class="{ changed : vm.Debug.memory.write.contains(item - 256) }">{{vm.Memory.memArray[item] | hex}}</span></td>
                             </tr>
                         </table>                
                     </div>  
@@ -110,10 +163,10 @@
                     <h2>Memory Write</h2>
                     <div class="stackWatch">
                         <table class="table table-striped">
-                            <tr ng-repeat="item in vm.MemoryChange  track by $index ">
+                            <tr ng-repeat="item in vm.Debug.memory.write  track by $index ">
                                 <td><span style="color: black; font-weight:600;" data-toggle="tooltip" data-placement="top" title="{{item}}">{{item | hex:16}}:</span>
                                 </td>
-                                <td ><span style="color: blue;">{{vm.Memory[item] | hex}}</span></td>
+                                <td ><span style="color: blue;">{{vm.Memory.memArray[item] | hex}}</span></td>
                             </tr>
                         </table>                
                     </div>          
@@ -121,47 +174,205 @@
                     <h2>Memory Read</h2>
                     <div class="stackWatch">
                         <table class="table table-striped">
-                            <tr ng-repeat="item in vm.MemoryRead  track by $index ">
+                            <tr ng-repeat="item in vm.Debug.memory.read  track by $index ">
                                 <td><span style="color: black; font-weight:600;" data-toggle="tooltip" data-placement="top" title="{{item}}">{{item | hex:16}}:</span>
                                 </td>
-                                <td ><span style="color: blue;">{{vm.Memory[item] | hex}}</span></td>
+                                <td ><span style="color: blue;">{{vm.Memory.memArray[item] | hex}}</span></td>
                             </tr>
                         </table>                
                     </div>                      
-                </center>
 
                
                 </div>
+
                 <div class="col-sm-3">
+
+
+                    <!-- 
+                    <h2 ng-click="vm.RefreshScreen()">Screen</h2>
+                    <canvas id="vicScreen" width="352" height="368" style="border:20px solid #FFFFFF;" ng-style="{'border-color': vm.Screen.BorderColor}" ></canvas>
+                    -->
 
                     <h2>Memory</h2>
                     <div class="row" style="margin-bottom: 10px;">
-                        <div class="col-sm-4"><input class="form-control form-control-sm" ng-model="vm.memoryWatchStart"/></div>
-                        <div class="col-sm-4"><input class="form-control form-control-sm" ng-model="vm.memoryWatchEnd"/></div>
+                        <div class="col-sm-4"><input class="form-control form-control-sm" ng-model="vm.pokeAddress" placeholder="address" autocomplete="none" /></div>
+                        <div class="col-sm-4"><input class="form-control form-control-sm" ng-model="vm.pokeValue"  placeholder="value" autocomplete="none" /></div>
+                        <div class="col-sm-4"><button class="btn btn-info btn-sm" ng-click="vm.poke();">poke</button></div>
+                    </div>                    
+                    <div class="row" style="margin-bottom: 10px;">
+                        <div class="col-sm-4"><input class="form-control form-control-sm" ng-model="vm.memoryWatchStart" placeholder="start address" autocomplete="none" /></div>
+                        <div class="col-sm-4"><input class="form-control form-control-sm" ng-model="vm.memoryWatchEnd"  placeholder="end address" autocomplete="none" /></div>
                         <div class="col-sm-4"><button class="btn btn-info btn-sm" ng-click="vm.watch();">watch</button></div>
                     </div>
                     <div class="memoryWatch">
                         <div ng-repeat="item in vm.WatchMemory track by $index" class="memoryRow">
                             <span style="color: black; font-weight:600;" data-toggle="tooltip" data-placement="top" title="{{item}}">{{item | hex:16}}:</span>
-                            <span style="color: grey;" ng-repeat="x in vm.MemoryRow track by $index" ng-class="{ highlight : vm.MemoryChange.includes( item + x ) == true }">{{vm.Memory[item + x] | hex}}&nbsp;</span>
+                            <span style="color: grey;" ng-repeat="x in vm.MemoryRow track by $index" ng-class="{ highlight : vm.Debug.memory.write.includes( item + x ) == true }">{{vm.Memory.memArray[item + x] | hex}}&nbsp;</span>
                         </div>
-
-
-             
                     </div>   
+
+                   
                 </div>            
-                <div class="col-sm-1">
+                <div class="col-sm-3">
                     <h2>Memory Map</h2>
+
+
                     <div class="row" style="margin-bottom: 10px;">
-                        <div class="memoryMap">
-                            <div class="memorySection" ng-repeat="item in vm.memoryMap" ng-click="vm.memoryWatchStart = vm.setRunTo(item.Start); vm.memoryWatchEnd = vm.setRunTo(item.End);"
-                                ng-class="{ write : vm.checkRange( item.Start, item.End, vm.MemoryChange ), read : vm.checkRange( item.Start, item.End, vm.MemoryRead ) }">
-                                <div class="startAddress">{{item.Start | hex:16 }}</div>
-                                <div class="endAddress">{{item.End | hex:16 }}</div>
-                                <div class="memoryMaplabel">{{item.Name}}</div>
-                            </div>
-                        </div>
-                    </div>
+                        <table class="memoryMap">
+                            <tr>
+                                <th>Block</th>
+                                <th>Address Range</th>
+                                <th colspan="3">Use</th>
+                            </tr>
+                            <tr>
+                                <td class="Interal">0</td>
+                                <td class="Interal" ng-class="{ write : vm.checkRange( 0, 8191, vm.Debug.memory.write ), read : vm.checkRange( 0, 8191, vm.Debug.memory.read ) }">0000 - 1FFF</td>
+                                <td class="Interal">Interal 1K RAM</td>
+                                <td class="Exteral">Cartridge RAM1,RAM2,RAM3</td>
+                                <td class="Interal">Interal 4K RAM</td>
+                            </tr>
+                            <tr>
+                                <td class="Exteral">1</td>
+                                <td class="Exteral" ng-class="{ write : vm.checkRange( 8192, 16383, vm.Debug.memory.write ), read : vm.checkRange( 8192, 16383, vm.Debug.memory.read ) }">2000 - 3FFF</td>
+                                <td class="Exteral" colspan="3">Cartridge BLK1</td>
+                            </tr>
+                            <tr>
+                                <td class="Exteral">2</td>
+                                <td class="Exteral" ng-class="{ write : vm.checkRange( 16384, 24575, vm.Debug.memory.write ), read : vm.checkRange( 16384, 24575, vm.Debug.memory.read ) }">4000 - 5FFF</td>
+                                <td class="Exteral" colspan="3">Cartridge BLK2</td>
+                            </tr>
+                            <tr>
+                                <td class="Exteral">3</td>
+                                <td class="Exteral" ng-class="{ write : vm.checkRange( 24576, 32767, vm.Debug.memory.write ), read : vm.checkRange( 24576, 32767, vm.Debug.memory.read ) }">6000 - 7FFF</td>
+                                <td class="Exteral" colspan="3">Cartridge BLK3</td>
+                            </tr>
+                            <tr>
+                                <td class="Interal">4</td>
+                                <td class="Interal" ng-class="{ write : vm.checkRange( 32768, 40959, vm.Debug.memory.write ), read : vm.checkRange( 32768, 40959, vm.Debug.memory.read ) }">8000 - 9FFF</td>
+                                <td class="Interal" colspan="2">Character ROM, I/O 0 and Color RAM</td>
+                                <td class="Exteral">Cartridge I/O2,I/O3</td>
+                            </tr>        
+                            <tr>
+                                <td class="Exteral">5</td>
+                                <td class="Exteral" ng-class="{ write : vm.checkRange( 40960, 49151, vm.Debug.memory.write ), read : vm.checkRange( 40960, 49151, vm.Debug.memory.read ) }">A000 - BFFF</td>
+                                <td class="Exteral" colspan="3">Cartridge BLK5</td>
+                            </tr>               
+                            <tr>
+                                <td class="Interal">6</td>
+                                <td class="Interal" ng-class="{ write : vm.checkRange( 49152, 57343, vm.Debug.memory.write ), read : vm.checkRange( 49152, 57343, vm.Debug.memory.read ) }">C000 - DFFF</td>
+                                <td class="Interal" colspan="3">BASIC ROM</td>
+                            </tr>   
+                            <tr>
+                                <td class="Interal">7</td>
+                                <td class="Interal" ng-class="{ write : vm.checkRange( 57344, 65535, vm.Debug.memory.write ), read : vm.checkRange( 57344, 65535, vm.Debug.memory.read ) }">E000 - FFFF</td>
+                                <td class="Interal" colspan="3">KERNAL ROM</td>
+                            </tr>                                                                                            
+                        </table>
+
+                        <h3 class="mt-2 mb-0">Block 0 Detail</h3>
+                        <table class="memoryMap">
+                            <tr>
+                                <th>Address Range</th>
+                                <th>Size</th>
+                                <th>Use</th>
+                            </tr>
+                            <tr>
+                                <td class="Interal" ng-class="{ write : vm.checkRange( 0, 255, vm.Debug.memory.write ), read : vm.checkRange( 0, 255, vm.Debug.memory.read ) }">0000 - 00FF</td>
+                                <td class="Interal">256 bytes</td>
+                                <td class="Interal">Zero page</td>
+                            </tr>
+                            <tr>
+                                <td class="Interal" ng-class="{ write : vm.checkRange( 256, 511, vm.Debug.memory.write ), read : vm.checkRange( 256, 511, vm.Debug.memory.read ) }">0100 - 01FF</td>
+                                <td class="Interal">256 bytes</td>
+                                <td class="Interal">Stack</td>
+                            </tr>      
+                            <tr>
+                                <td class="Interal" ng-class="{ write : vm.checkRange( 512, 1023, vm.Debug.memory.write ), read : vm.checkRange( 512, 1023, vm.Debug.memory.read ) }">0200 - 03FF</td>
+                                <td class="Interal">512 bytes</td>
+                                <td class="Interal">BASIC variables</td>
+                            </tr>     
+                            <tr>
+                                <td class="Interal" ng-class="{ write : vm.checkRange( 1024, 2047, vm.Debug.memory.write ), read : vm.checkRange( 1024, 2047, vm.Debug.memory.read ) }">0400 - 07FF</td>
+                                <td class="Exteral">1K</td>
+                                <td class="Exteral">RAM1 (cartridge slot)</td>
+                            </tr>                                                                             
+                            <tr>
+                                <td class="Interal" ng-class="{ write : vm.checkRange( 2048, 3071, vm.Debug.memory.write ), read : vm.checkRange( 2048, 3071, vm.Debug.memory.read ) }">0800 - 0BFF</td>
+                                <td class="Exteral">1K</td>
+                                <td class="Exteral">RAM2 (cartridge slot)</td>
+                            </tr>                                                                             
+                            <tr>
+                                <td class="Interal" ng-class="{ write : vm.checkRange( 3072, 4095, vm.Debug.memory.write ), read : vm.checkRange( 3072, 4095, vm.Debug.memory.read ) }">0C00 - 0FFF</td>
+                                <td class="Exteral">1K</td>
+                                <td class="Exteral">RAM3 (cartridge slot)</td>
+                            </tr>                    
+                            <tr>
+                                <td class="Interal" ng-class="{ write : vm.checkRange( 4096, 7679, vm.Debug.memory.write ), read : vm.checkRange( 4096, 7679, vm.Debug.memory.read ) }">1000 - 1DFF</td>
+                                <td class="Interal">3.5K</td>
+                                <td class="Interal">BASIC User area</td>
+                            </tr>   
+                            <tr>
+                                <td class="Interal" ng-class="{ write : vm.checkRange( 7680, 8191, vm.Debug.memory.write ), read : vm.checkRange( 7680, 8191, vm.Debug.memory.read ) }">1E00 - 1FFF</td>
+                                <td class="Interal">512 bytes</td>
+                                <td class="Interal">Screen Memory</td>
+                            </tr>                                                                                                                    
+                        </table>
+
+                        <h3 class="mt-2 mb-0">Block 4 Detail</h3>
+                        <table class="memoryMap">
+                            <tr>
+                                <th>Address Range</th>
+                                <th>Size</th>
+                                <th>Use</th>
+                            </tr>
+                            <tr>
+                                <td class="Interal" ng-class="{ write : vm.checkRange( 32768, 36863, vm.Debug.memory.write ), read : vm.checkRange( 32768, 36863, vm.Debug.memory.read ) }">8000 - 8FFF</td>
+                                <td class="Interal">4K</td>
+                                <td class="Interal">Character ROM</td>
+                            </tr>
+                            <tr>
+                                <td class="Interal" ng-class="{ write : vm.checkRange( 36864, 36879, vm.Debug.memory.write ), read : vm.checkRange( 36864, 36879, vm.Debug.memory.read ) }">9000 - 900F</td>
+                                <td class="Interal">16 bytes</td>
+                                <td class="Interal">VIC Chip Registers</td>
+                            </tr>                           
+                            <tr>
+                                <td class="Interal" ng-class="{ write : vm.checkRange( 36880, 37135, vm.Debug.memory.write ), read : vm.checkRange( 36880, 37135, vm.Debug.memory.read ) }">9010 - 910F</td>
+                                <td class="Interal">255 bytes</td>
+                                <td class="Interal"></td>
+                            </tr>                                
+                            <tr>
+                                <td class="Interal" ng-class="{ write : vm.checkRange( 37136, 37151, vm.Debug.memory.write ), read : vm.checkRange( 37136, 37151, vm.Debug.memory.read ) }">9110 - 911F</td>
+                                <td class="Interal">16 bytes</td>
+                                <td class="Interal">VIA #1 (userport)</td>
+                            </tr>      
+                            <tr>
+                                <td class="Interal" ng-class="{ write : vm.checkRange( 37152, 37167, vm.Debug.memory.write ), read : vm.checkRange( 37152, 37167, vm.Debug.memory.read ) }">9120 - 912F</td>
+                                <td class="Interal">16 bytes</td>
+                                <td class="Interal">VIA #2 (keyboard)</td>
+                            </tr>                                
+                            <tr>
+                                <td class="Interal" ng-class="{ write : vm.checkRange( 37168, 37887, vm.Debug.memory.write ), read : vm.checkRange( 37168, 37887, vm.Debug.memory.read ) }">9130 - 93FF</td>
+                                <td class="Interal">719 bytes</td>
+                                <td class="Interal"></td>
+                            </tr>      
+                            <tr>
+                                <td class="Interal" ng-class="{ write : vm.checkRange( 37888, 38911, vm.Debug.memory.write ), read : vm.checkRange( 37888, 38911, vm.Debug.memory.read ) }">9400 - 97FF</td>
+                                <td class="Interal">1K</td>
+                                <td class="Interal">Color RAM</td>
+                            </tr>     
+                            <tr>
+                                <td class="Exteral" ng-class="{ write : vm.checkRange( 38912, 39935, vm.Debug.memory.write ), read : vm.checkRange( 38912, 39935, vm.Debug.memory.read ) }">9800 - 9BFF</td>
+                                <td class="Exteral">1K</td>
+                                <td class="Exteral">I/O 2 (cartridge slot)</td>
+                            </tr>                                                                             
+                            <tr>
+                                <td class="Exteral" ng-class="{ write : vm.checkRange( 39936, 40959, vm.Debug.memory.write ), read : vm.checkRange( 39936, 40959, vm.Debug.memory.read ) }">9C00 - 9FFF</td>
+                                <td class="Exteral">1K</td>
+                                <td class="Exteral">I/O 3 (cartridge slot)</td>
+                            </tr>                                                                                                                                                                                              
+                        </table>
+                      
+                    </div>  
                 </div>    
             </div>
         </div>

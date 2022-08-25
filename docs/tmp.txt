@@ -83,3 +83,130 @@
 
 
     */
+
+
+
+        function disassemble( startAddress, byteCount  ){
+      vm.disassembleStart = startAddress;
+      let endAddress = startAddress + byteCount;
+      vm.AssemblyCode = [];
+      for( var i = startAddress; i < endAddress; ){
+        var value = Memory.read(i);
+        var codeLine = {};
+        codeLine.OpCode = vm.OpCodes[value];
+        if ( codeLine.OpCode == null){
+          codeLine.OpCode = { Name :  $filter('hex')(value), OpCode : value, Length : 1, Mode : 'Implied',  Flags : '', Descripton : 'Data' };
+        }
+        codeLine.Address = i;
+        var label = null;
+        for ( var x = 0; x < vm.LabelMap.length; x++ ){
+          if ( vm.LabelMap[x].Address == codeLine.Address ){
+            label = vm.LabelMap[x];
+            break;
+          }
+        }
+        if ( label != null ){
+          codeLine.Label = label.Label;
+          codeLine.Comment = label.Comment;
+        }
+        
+        codeLine.msbHex = $filter('hex')(Memory.read( codeLine.Address + 2 ));              
+        codeLine.lsbHex = $filter('hex')(Memory.read( codeLine.Address + 1 ));
+        codeLine.bytes = '';
+
+        for(var y = 0; y < codeLine.OpCode.Length; y++){
+          codeLine.bytes += $filter('hex')(Memory.read(codeLine.Address + y )) + ' ';
+        }
+
+        var line = '';
+        switch(codeLine.OpCode.Mode){
+          case 'Absolute':  // $c000
+          {
+            line = ' $' + codeLine.msbHex + codeLine.lsbHex;
+            break;
+          }
+          case 'Absolute,X':  // $c000,X
+          {
+            line = ' $' + codeLine.msbHex + codeLine.lsbHex + ',X';
+            break;
+          }            
+          case 'Absolute,Y':  // $c000,Y
+          {
+            line = ' $' + codeLine.msbHex + codeLine.lsbHex +  ',Y';
+            break;
+          }            
+          case 'Accumulator': // A
+          {
+            line += ' A';
+            break;
+          }             
+          case 'Immediate': // #$c0
+          {
+            line += '#$' + codeLine.lsbHex;
+            break;
+          }               
+          case 'Indirect':  // ($c000)
+          {
+            line += ' ($' + codeLine.msbHex + codeLine.lsbHex + ')';
+            break;
+          }            
+          case 'Indirect,X': // Indexed indirect ($c0,X)
+          {
+            line += ' ($' + codeLine.lsbHex + ',X)';
+            break;
+          }            
+          case 'Indirect,Y': // Indirect indexed ($c0),Y
+          {
+            line += ' ($' + codeLine.lsbHex + '),Y';
+            break;
+          }            
+          case 'Zero Page': // $c0
+          {
+            line += ' $' + codeLine.lsbHex;
+            break;
+          }             
+          case 'Zero Page,X': // $c0,X
+          {
+            line += ' $' + codeLine.lsbHex + ',X';
+            break;
+          }               
+          case 'Zero Page,Y': // $c0,Y
+          {
+            line += ' $' + codeLine.lsbHex + ',Y';
+            break;
+          }             
+          case 'Relative': // $c0
+          {
+            var address =  addOnlyLSB( Memory.read(codeLine.Address + 1), codeLine.Address + 2 );
+            line += ' L_' + $filter('hex')( address, 16 );
+            break;
+          }       
+          case 'Implied':
+          {
+            line = '';
+            break;
+          }         
+          default:
+          {
+            line += codeLine.OpCode.Mode;
+            break;
+          }
+        }
+        codeLine.Params = line;
+        vm.AssemblyCode.push( codeLine );
+        i += codeLine.OpCode.Length;
+      }
+    }
+
+
+        function addOnlyLSB(byte, number) {
+      var lsb = number & 0xFF;
+      lsb = byteAdd(lsb, byte);
+      number = number & 0xFF00;
+      return (number | lsb)
+    }
+
+        function byteAdd(byte1, byte2) {
+      var retVal = byte1 + byte2;
+      return retVal & 0xFF;
+    }  
