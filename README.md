@@ -13,5 +13,6 @@ The video below is a quick demo of this tool.
 
 [Live Page](https://makeratplay.github.io/6502-Emulator/) 
 
+You can find more info on my web site for this project http://www.makeratplay.com/projects/7/index.html
 
 And checkout my YouTube channel for other maker projects I have done. http://makeratplay.com/
